@@ -1,0 +1,58 @@
+[data-part="menu"] {
+    position: fixed;
+    z-index: 100;
+    min-width: 200px;
+    box-sizing: border-box;
+    padding: 4px;
+    border: 1px solid var(--edge);
+    border-radius: 8px;
+    background: var(--panel);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 18%);
+    color: var(--fg);
+    font-size: 13px;
+    outline: none;
+}
+
+[data-part="menu"] [data-part="item"] {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    border-radius: 5px;
+    padding: 3px 10px;
+    outline: none;
+    white-space: nowrap;
+    cursor: default;
+}
+
+[data-part="menu"] [data-part="item"] [data-part="text"] {
+    flex: 1;
+}
+
+[data-part="menu"] [data-part="item"] [data-part="key"] {
+    flex: none;
+    color: var(--dim);
+    font-family: var(--mono);
+    font-size: 11px;
+}
+
+[data-part="menu"] [data-part="item"]:focus [data-part="key"] {
+    color: rgb(255 255 255 / 70%);
+}
+
+[data-part="menu"] [data-part="item"]:focus {
+    background: var(--accent);
+    color: #ffffff;
+}
+
+[data-part="menu"] [data-part="item"][data-disabled] {
+    color: #bcbcc0;
+}
+
+[data-part="menu"] [data-part="item"][data-danger]:not(:focus) {
+    color: var(--red);
+}
+
+[data-part="menu"] [data-part="separator"] {
+    margin: 4px 8px;
+    border-top: 1px solid var(--edge);
+}

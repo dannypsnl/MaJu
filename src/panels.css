@@ -1,0 +1,111 @@
+[data-part="panel"] {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border: 1px solid var(--edge);
+    border-radius: 8px;
+    background: var(--panel);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+    overflow: hidden;
+}
+
+[data-part="panel"][data-focus] {
+    border-color: #a9c4e8;
+    box-shadow: 0 0 0 3px rgb(10 102 208 / 10%);
+}
+
+[data-part="head"] {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 6px 0 10px;
+    border-bottom: 1px solid var(--edge);
+    background: var(--head);
+}
+
+[data-part="head"] [data-part="name"] {
+    flex: none;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+[data-part="head"] [data-part="count"] {
+    flex: none;
+    border-radius: 9px;
+    padding: 0 6px;
+    background: #e6e6ea;
+    color: var(--dim);
+    font-size: 11px;
+    line-height: 16px;
+    font-variant-numeric: tabular-nums;
+}
+
+[data-part="body"] {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 4px 0;
+}
+
+[data-part="empty"] {
+    padding: 2px 10px;
+    color: var(--dim);
+}
+
+[data-selected] {
+    background: var(--selected-off);
+}
+
+[data-part="panel"][data-focus] [data-selected] {
+    background: var(--selected);
+}
+
+[data-part="handle"] {
+    flex: none;
+    position: relative;
+    z-index: 1;
+    outline: none;
+}
+
+[data-part="handle"][data-axis="x"] {
+    width: 10px;
+    cursor: col-resize;
+}
+
+[data-part="handle"][data-axis="y"] {
+    height: 10px;
+    cursor: row-resize;
+}
+
+[data-part="handle"]::after {
+    content: "";
+    position: absolute;
+    border-radius: 2px;
+    background: transparent;
+    transition: background 120ms ease;
+}
+
+[data-part="handle"][data-axis="x"]::after {
+    top: 16px;
+    bottom: 16px;
+    left: 4px;
+    width: 2px;
+}
+
+[data-part="handle"][data-axis="y"]::after {
+    left: 24px;
+    right: 24px;
+    top: 4px;
+    height: 2px;
+}
+
+[data-part="handle"]:hover::after,
+[data-part="handle"]:focus-visible::after {
+    background: #b6b6bd;
+}
+
+[data-part="handle"][data-dragging]::after {
+    background: var(--accent);
+}
