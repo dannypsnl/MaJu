@@ -40,6 +40,54 @@ const on = () => at(state.selected);
 const spacesAt = (id) =>
   state.workspaces.filter((space) => space.change === id);
 
+/*
+    Kin: the change under the pointer and the rows an edge joins it to — its parents
+    and its children. They keep their colour and everything else steps back, so a
+    glance shows what the change sits between. Marks count as kin as well; a mark is
+    a second selection the reader put there by hand, and fading it would be hiding
+    their own work from them.
+
+    It follows the pointer rather than the selection because it answers a question
+    one asks while reading — what is this change next to — and reading is done by
+    looking around, not by moving the cursor and dragging Files and Diff along.
+
+    Null is "light the whole log": nothing hovered, a hovered id the last refresh
+    rewrote away, and a rebase being aimed — the destination one is looking for
+    there is usually one of the rows this would have dimmed.
+*/
+let hovered = null;
+let near = null;
+
+function kin() {
+  if (rebasing || !at(hovered)) return null;
+  const found = new Set([hovered, ...marks()]);
+  for (const change of state.changes) {
+    if (change.change === hovered) {
+      for (const parent of change.parents) found.add(parent);
+    } else if (change.parents.includes(hovered)) {
+      found.add(change.change);
+    }
+  }
+  return found;
+}
+
+const faded = (id) => near !== null && !near.has(id);
+
+/*
+    Retracing touches the rows that are already on screen instead of redrawing the
+    panel. A redraw would replace the very element the pointer is sitting on, and
+    the browser sends no mouseover for an element that appears under a pointer that
+    did not move — the trace would go out the moment it was drawn.
+*/
+function trace(id) {
+  if (id === hovered) return;
+  hovered = id;
+  near = kin();
+  for (const row of graph.body.querySelectorAll('[data-part="change"]')) {
+    row.toggleAttribute("data-faded", faded(row.dataset.change));
+  }
+}
+
 function drifted(label) {
   const [name, remote] = label.split("@");
   const ref = state.refs[name];
@@ -155,6 +203,7 @@ function line(change, place, lanes) {
         change: change.change,
         ...(change.change === state.selected ? { selected: "" } : {}),
         ...(marked.has(change.change) ? { marked: "" } : {}),
+        ...(faded(change.change) ? { faded: "" } : {}),
         destination: String(Boolean(rebasing) && rebasing !== change.change),
       },
       draggable: true,
@@ -602,8 +651,17 @@ export const graph = add({
       return div({ dataset: { part: "empty" } }, "No jj workspace open");
     if (state.changes.length === 0)
       return div({ dataset: { part: "empty" } }, "Empty log");
-    const list = ul({ dataset: { part: "changes" } });
+    const list = ul({
+      dataset: { part: "changes" },
+      // Delegated: one pair of handlers outlives every row the list is rebuilt with.
+      onmouseover: (event) =>
+        trace(
+          event.target.closest('[data-part="change"]')?.dataset.change ?? null,
+        ),
+      onmouseleave: () => trace(null),
+    });
     list.style.setProperty("--gutter", `${width(state.graph.width)}px`);
+    near = kin();
     state.changes.forEach((change, index) => {
       list.append(line(change, state.graph.places[index], state.graph.width));
       if (prompting?.change === change.change) list.append(ask());

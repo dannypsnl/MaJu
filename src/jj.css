@@ -282,6 +282,15 @@ textarea[data-part="field"] {
 }
 
 /*
+    Rows the change under the pointer is not joined to; kin() in ui/graph.js decides
+    which. Nothing hovered means nothing faded, so the log's resting state is the
+    whole graph in colour.
+*/
+[data-part="change"][data-faded] {
+    opacity: 0.4;
+}
+
+/*
     While the push runs, the cloud is replaced by the sync arrows and turned. The
     swap is the whole tell: a cloud that merely spun would read as decoration, and
     two arrows chasing each other is what every other tool means by "working".
