@@ -26,7 +26,8 @@ Neutralino.events.on("windowFocus", refresh);
 
 Neutralino.events.on("windowClose", () => Neutralino.app.exit());
 
-const save = (key, value) => Neutralino.storage.setData(key, value).catch(() => {});
+const save = (key, value) =>
+  Neutralino.storage.setData(key, value).catch(() => {});
 
 async function saved(key) {
   try {
@@ -38,6 +39,31 @@ async function saved(key) {
 
 onLayout((sizes) => save("layout", JSON.stringify(sizes)));
 
+const menu = () =>
+  Neutralino.window.setMainMenu([
+    {
+      id: "app",
+      text: "MaJu",
+      menuItems: [
+        { id: "quit", text: "Quit MaJu", shortcut: "q", action: "terminate:" },
+      ],
+    },
+    {
+      id: "file",
+      text: "File",
+      menuItems: [
+        { id: "open", text: "Open Repository…", shortcut: "o" },
+        { text: "-" },
+        {
+          id: "refresh",
+          text: "Refresh",
+          shortcut: "r",
+          isDisabled: !state.root,
+        },
+      ],
+    },
+  ]);
+
 let remembered = null;
 subscribe(() => {
   if (state.root === remembered) return;
@@ -45,6 +71,7 @@ subscribe(() => {
   const name = state.root?.split("/").filter(Boolean).pop();
   Neutralino.window.setTitle(name ? `MaJu — ${name}` : "MaJu").catch(() => {});
   save("root", state.root ?? "");
+  menu();
 });
 
 async function start() {
@@ -52,10 +79,29 @@ async function start() {
   if (sizes) {
     try {
       relayout(JSON.parse(sizes));
-    } catch {
-    }
+    } catch {}
   }
   await open((await saved("root")) ?? NL_CWD);
 }
 
+await menu();
 start();
+
+async function ask_and_change_root() {
+  const picked = await Neutralino.os.showFolderDialog("Open Repository", {
+    defaultPath: state.root ?? NL_CWD,
+  });
+  if (picked) await open(picked);
+}
+
+Neutralino.events.on("mainMenuItemClicked", (event) => {
+  switch (event.detail.id) {
+    case "open":
+      ask_and_change_root();
+      break;
+
+    case "refresh":
+      refresh();
+      break;
+  }
+});
