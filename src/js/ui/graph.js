@@ -11,11 +11,13 @@ let prompting = null;
 
 const title = (change) => change.description || "(no description set)";
 
-const cursor = () => state.changes.findIndex((change) => change.change === state.selected);
+const cursor = () =>
+  state.changes.findIndex((change) => change.change === state.selected);
 
 const on = () => at(state.selected);
 
-const spacesAt = (id) => state.workspaces.filter((space) => space.change === id);
+const spacesAt = (id) =>
+  state.workspaces.filter((space) => space.change === id);
 
 function drifted(label) {
   const [name, remote] = label.split("@");
@@ -27,17 +29,30 @@ function drifted(label) {
 function standing(name, change) {
   const remotes = Object.entries(state.refs[name]?.remotes ?? {});
   if (state.remotes.length === 0) {
-    return { mark: "local", why: `${name} is only here \u2014 no git remote is set` };
+    return {
+      mark: "local",
+      why: `${name} is only here \u2014 no git remote is set`,
+    };
   }
   if (remotes.length === 0) {
     const to = state.remotes[0].name;
-    return { mark: "push", remote: to, why: `${name} has not been pushed to ${to}` };
+    return {
+      mark: "push",
+      remote: to,
+      why: `${name} has not been pushed to ${to}`,
+    };
   }
   const loose = remotes.find(([, where]) => !where.tracked);
   if (loose && !remotes.some(([, where]) => where.tracked)) {
-    return { mark: "track", remote: loose[0], why: `${name}@${loose[0]} is not tracked` };
+    return {
+      mark: "track",
+      remote: loose[0],
+      why: `${name}@${loose[0]} is not tracked`,
+    };
   }
-  const behind = remotes.filter(([, where]) => where.tracked && where.change !== change);
+  const behind = remotes.filter(
+    ([, where]) => where.tracked && where.change !== change,
+  );
   if (behind.length === 0) return null;
   return {
     mark: "push",
@@ -79,13 +94,19 @@ function asking(next) {
 function onto(source, destination, event) {
   rebasing = null;
   contextMenu(event, [
-    { text: "Rebase Onto", run: () => act(jj.rebaseOne(state.root, source, destination)) },
+    {
+      text: "Rebase Onto",
+      run: () => act(jj.rebaseOne(state.root, source, destination)),
+    },
     {
       text: "Rebase With Descendants Onto",
       run: () => act(jj.rebaseTree(state.root, source, destination)),
     },
     { separator: true },
-    { text: "Squash Into", run: () => act(jj.squashInto(state.root, source, destination)) },
+    {
+      text: "Squash Into",
+      run: () => act(jj.squashInto(state.root, source, destination)),
+    },
   ]);
 }
 
@@ -136,7 +157,8 @@ function line(change, place, lanes) {
         if (takes(change)) node.setAttribute("data-drop", "");
       },
       ondragleave: (event) => {
-        if (!node.contains(event.relatedTarget)) node.removeAttribute("data-drop");
+        if (!node.contains(event.relatedTarget))
+          node.removeAttribute("data-drop");
       },
       ondrop: (event) => {
         const held = dragging;
@@ -186,7 +208,8 @@ function line(change, place, lanes) {
       span({
         dataset: { part: "bookmark", remote: "" },
         textContent: label,
-        title: state.refs[label.split("@")[0]]?.remotes[label.split("@")[1]]?.tracked
+        title: state.refs[label.split("@")[0]]?.remotes[label.split("@")[1]]
+          ?.tracked
           ? `${label} is tracked`
           : `${label} is not tracked`,
         oncontextmenu: (event) => {
@@ -198,7 +221,9 @@ function line(change, place, lanes) {
     span({ dataset: { part: "title" }, textContent: title(change) }),
   );
   if (change.conflict) {
-    node.append(span({ dataset: { part: "conflict" }, textContent: "conflict" }));
+    node.append(
+      span({ dataset: { part: "conflict" }, textContent: "conflict" }),
+    );
   }
   return node;
 }
@@ -226,7 +251,10 @@ function bookmarkVerbs(name, change) {
   const remotes = Object.entries(state.refs[name]?.remotes ?? {});
   const items = [];
   if (how?.mark === "local") {
-    items.push({ text: "Set Remote\u2026", run: () => addingRemote(change.change) });
+    items.push({
+      text: "Set Remote\u2026",
+      run: () => addingRemote(change.change),
+    });
   }
   if (how?.mark === "track") {
     items.push({
@@ -308,7 +336,9 @@ const naming = (change) =>
     value: "",
     placeholder: "Bookmark name",
     run: (id, value) =>
-      value ? jj.moveBookmark(state.root, value, id) : Promise.resolve({ ok: true }),
+      value
+        ? jj.moveBookmark(state.root, value, id)
+        : Promise.resolve({ ok: true }),
   });
 
 const addingRemote = (change) =>
@@ -317,7 +347,9 @@ const addingRemote = (change) =>
     value: "",
     placeholder: "Remote URL, added as origin",
     run: (id, value) =>
-      value ? jj.addRemote(state.root, "origin", value) : Promise.resolve({ ok: true }),
+      value
+        ? jj.addRemote(state.root, "origin", value)
+        : Promise.resolve({ ok: true }),
   });
 
 async function addWorkspace(change) {
@@ -339,7 +371,8 @@ function workspaceVerbs(change) {
   return spaces.flatMap((space) => [
     {
       text: `Open Workspace ${space.name}`,
-      when: () => space.change !== here() || absolute(space.path) !== state.root,
+      when: () =>
+        space.change !== here() || absolute(space.path) !== state.root,
       run: () => open(absolute(space.path)),
     },
     {
@@ -366,8 +399,15 @@ function verbs(change) {
       run: () => Neutralino.clipboard.writeText(id),
     },
     { separator: true },
-    { text: "Squash Into Parent", key: "s", run: () => act(jj.squash(state.root, id)) },
-    { text: "Absorb Into Ancestors", run: () => act(jj.absorb(state.root, id)) },
+    {
+      text: "Squash Into Parent",
+      key: "s",
+      run: () => act(jj.squash(state.root, id)),
+    },
+    {
+      text: "Absorb Into Ancestors",
+      run: () => act(jj.absorb(state.root, id)),
+    },
     {
       text: rebasing === id ? "Rebasing… pick a destination" : "Rebase…",
       key: "r",
@@ -380,7 +420,12 @@ function verbs(change) {
     { separator: true },
     ...workspaceVerbs(change),
     { separator: true },
-    { text: "Abandon Change", key: "a", danger: true, run: () => act(jj.abandon(state.root, id)) },
+    {
+      text: "Abandon Change",
+      key: "a",
+      danger: true,
+      run: () => act(jj.abandon(state.root, id)),
+    },
   ];
 }
 
@@ -388,7 +433,8 @@ export const graph = add({
   id: "graph",
   host: "left",
   flex: "3 1 0",
-  title: () => (rebasing ? `Rebasing ${rebasing} — pick a destination` : "Graph"),
+  title: () =>
+    rebasing ? `Rebasing ${rebasing} — pick a destination` : "Graph",
   count: () => (state.changes.length ? String(state.changes.length) : ""),
 
   move(by) {
@@ -407,14 +453,21 @@ export const graph = add({
     const change = on();
     if (!change) return [];
     return [
-      ...(rebasing ? [{ text: "Cancel Rebase", key: "Escape", run: cancel }, { separator: true }] : []),
+      ...(rebasing
+        ? [
+            { text: "Cancel Rebase", key: "Escape", run: cancel },
+            { separator: true },
+          ]
+        : []),
       ...verbs(change),
     ];
   },
 
   render() {
-    if (!state.repo) return div({ dataset: { part: "empty" } }, "No jj workspace open");
-    if (state.changes.length === 0) return div({ dataset: { part: "empty" } }, "Empty log");
+    if (!state.repo)
+      return div({ dataset: { part: "empty" } }, "No jj workspace open");
+    if (state.changes.length === 0)
+      return div({ dataset: { part: "empty" } }, "Empty log");
     const list = ul({ dataset: { part: "changes" } });
     list.style.setProperty("--gutter", `${width(state.graph.width)}px`);
     state.changes.forEach((change, index) => {

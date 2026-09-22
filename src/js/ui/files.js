@@ -49,7 +49,8 @@ export const files = add({
   ],
 
   render() {
-    if (state.files.length === 0) return div({ dataset: { part: "empty" } }, "No changes");
+    if (state.files.length === 0)
+      return div({ dataset: { part: "empty" } }, "No changes");
     return ul(
       { dataset: { part: "files" } },
       ...state.files.map((file) =>

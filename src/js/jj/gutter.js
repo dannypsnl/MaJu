@@ -22,7 +22,13 @@ const bend = (from, to, top, bottom) =>
   ` ${at(to)} ${bottom}`;
 
 const kind = (change) =>
-  change.current ? "current" : change.conflict ? "conflict" : change.empty ? "empty" : "change";
+  change.current
+    ? "current"
+    : change.conflict
+      ? "conflict"
+      : change.empty
+        ? "empty"
+        : "change";
 
 export const width = (lanes) => lanes * LANE;
 
@@ -49,8 +55,10 @@ export function gutter(place, lanes, change) {
     );
 
   for (const lane of place.through) draw(`M ${at(lane)} 0 V ${ROW}`, lane);
-  for (const lane of place.incoming) draw(bend(lane, place.column, 0, MIDDLE), lane);
-  for (const lane of place.edges) draw(bend(place.column, lane, MIDDLE, ROW), lane);
+  for (const lane of place.incoming)
+    draw(bend(lane, place.column, 0, MIDDLE), lane);
+  for (const lane of place.edges)
+    draw(bend(place.column, lane, MIDDLE, ROW), lane);
 
   if (place.elided) {
     const clear = !place.edges.includes(place.column);

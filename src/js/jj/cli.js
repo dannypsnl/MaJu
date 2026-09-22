@@ -53,9 +53,12 @@ function record(entry) {
 
 export async function run(root, args) {
   const command = `PATH=${PATH} jj --color never --no-pager ${args.map(quote).join(" ")}`;
-  const { exitCode, stdOut, stdErr } = await Neutralino.os.execCommand(command, {
-    cwd: root,
-  });
+  const { exitCode, stdOut, stdErr } = await Neutralino.os.execCommand(
+    command,
+    {
+      cwd: root,
+    },
+  );
   const error = (stdErr ?? "").trim();
   const ok = exitCode === 0;
   record({ args, ok, error, at: Date.now() });
@@ -82,7 +85,17 @@ export async function log(root, limit = 100) {
     .filter(Boolean)
     .map((line) => {
       const parts = line.split("\t");
-      const [change, commit, wc, empty, conflict, local, remote, time, parents] = parts;
+      const [
+        change,
+        commit,
+        wc,
+        empty,
+        conflict,
+        local,
+        remote,
+        time,
+        parents,
+      ] = parts;
       return {
         change,
         commit,
@@ -100,7 +113,12 @@ export async function log(root, limit = 100) {
 }
 
 export async function changed(root, change) {
-  const { ok, out, error } = await run(root, ["diff", "--summary", "-r", change]);
+  const { ok, out, error } = await run(root, [
+    "diff",
+    "--summary",
+    "-r",
+    change,
+  ]);
   if (!ok) return { error, files: [] };
   const files = out
     .split("\n")
@@ -117,7 +135,12 @@ export async function diff(root, change, path = null) {
 }
 
 export async function workspaces(root) {
-  const { ok, out, error } = await run(root, ["workspace", "list", "-T", WORKSPACE_TEMPLATE]);
+  const { ok, out, error } = await run(root, [
+    "workspace",
+    "list",
+    "-T",
+    WORKSPACE_TEMPLATE,
+  ]);
   if (!ok) return { error, workspaces: [] };
   const list = out
     .split("\n")
@@ -143,7 +166,8 @@ export async function refs(root) {
     const [name, remote, tracked, change] = line.split("\t");
     if (!change || remote === "git") continue;
     const ref = (where[name] ??= { local: null, remotes: {} });
-    if (remote) ref.remotes[remote] = { change, tracked: tracked === "tracked" };
+    if (remote)
+      ref.remotes[remote] = { change, tracked: tracked === "tracked" };
     else ref.local = change;
   }
   return { error: null, refs: where };
@@ -188,7 +212,8 @@ export const squashInto = (root, from, into) =>
 export const moveBookmark = (root, name, change) =>
   run(root, ["bookmark", "set", "--allow-backwards", "-r", change, name]);
 
-export const deleteBookmark = (root, name) => run(root, ["bookmark", "delete", name]);
+export const deleteBookmark = (root, name) =>
+  run(root, ["bookmark", "delete", name]);
 
 export const pushBookmark = (root, name, remote) =>
   run(root, ["git", "push", "--remote", remote, "-b", name]);
@@ -199,7 +224,8 @@ export const trackBookmark = (root, name, remote) =>
 export const untrackBookmark = (root, name, remote) =>
   run(root, ["bookmark", "untrack", `${name}@${remote}`]);
 
-export const addRemote = (root, name, url) => run(root, ["git", "remote", "add", name, url]);
+export const addRemote = (root, name, url) =>
+  run(root, ["git", "remote", "add", name, url]);
 
 export const undo = (root) => run(root, ["undo"]);
 

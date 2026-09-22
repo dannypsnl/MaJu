@@ -8,7 +8,9 @@ const STEP = 20;
 const CHATTER = new Set(["log", "diff", "workspace", "bookmark"]);
 
 const quiet = (entry) =>
-  entry.ok && CHATTER.has(entry.args[0]) && !["set", "delete", "add", "forget"].includes(entry.args[1]);
+  entry.ok &&
+  CHATTER.has(entry.args[0]) &&
+  !["set", "delete", "add", "forget"].includes(entry.args[1]);
 
 export const commandLog = add({
   id: "command-log",
@@ -36,16 +38,23 @@ export const commandLog = add({
     });
     return div(
       { dataset: { part: "commands" } },
-      ...shown.slice(-SHOWN).flatMap((entry) => [
-        div(
-          { dataset: { part: "command", ok: String(entry.ok) } },
-          span({ dataset: { part: "prompt" } }, "jj"),
-          span({ dataset: { part: "args" } }, entry.args.join(" ")),
-        ),
-        ...(entry.error
-          ? [div({ dataset: { part: "said", ok: String(entry.ok) } }, entry.error)]
-          : []),
-      ]),
+      ...shown
+        .slice(-SHOWN)
+        .flatMap((entry) => [
+          div(
+            { dataset: { part: "command", ok: String(entry.ok) } },
+            span({ dataset: { part: "prompt" } }, "jj"),
+            span({ dataset: { part: "args" } }, entry.args.join(" ")),
+          ),
+          ...(entry.error
+            ? [
+                div(
+                  { dataset: { part: "said", ok: String(entry.ok) } },
+                  entry.error,
+                ),
+              ]
+            : []),
+        ]),
     );
   },
 });

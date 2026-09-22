@@ -20,13 +20,20 @@ function place(menu, x, y) {
   menu.style.top = `${Math.max(MARGIN, top)}px`;
 }
 
-const choosable = (menu) => [...menu.querySelectorAll("[data-part='item']:not([data-disabled])")];
+const choosable = (menu) => [
+  ...menu.querySelectorAll("[data-part='item']:not([data-disabled])"),
+];
 
 function move(menu, by) {
   const items = choosable(menu);
   if (items.length === 0) return;
   const at = items.indexOf(document.activeElement);
-  const next = at < 0 ? (by > 0 ? 0 : items.length - 1) : (at + by + items.length) % items.length;
+  const next =
+    at < 0
+      ? by > 0
+        ? 0
+        : items.length - 1
+      : (at + by + items.length) % items.length;
   items[next].focus();
 }
 
@@ -61,7 +68,9 @@ export function contextMenu(event, items) {
         onmouseenter: () => item.run && row.focus(),
       },
       span({ dataset: { part: "text" } }, item.text),
-      ...(item.key ? [span({ dataset: { part: "key" } }, SHOWN[item.key] ?? item.key)] : []),
+      ...(item.key
+        ? [span({ dataset: { part: "key" } }, SHOWN[item.key] ?? item.key)]
+        : []),
     );
     menu.append(row);
   }
@@ -83,9 +92,13 @@ export function contextMenu(event, items) {
   );
 
   for (const gone of ["pointerdown", "wheel", "contextmenu"]) {
-    document.addEventListener(gone, (outside) => {
-      if (!menu.contains(outside.target)) close();
-    }, { capture: true, signal });
+    document.addEventListener(
+      gone,
+      (outside) => {
+        if (!menu.contains(outside.target)) close();
+      },
+      { capture: true, signal },
+    );
   }
   window.addEventListener("blur", close, { signal });
   window.addEventListener("resize", close, { signal });

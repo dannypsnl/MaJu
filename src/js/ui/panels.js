@@ -42,14 +42,18 @@ function pressed(event) {
     return;
   }
 
-  const verb = (focused?.verbs?.() ?? []).find((entry) => entry.key === event.key);
+  const verb = (focused?.verbs?.() ?? []).find(
+    (entry) => entry.key === event.key,
+  );
   if (!verb || !live(verb)) return;
   event.preventDefault();
   verb.run();
 }
 
 const reveal = (panel) =>
-  panel.body.querySelector("[data-selected]")?.scrollIntoView({ block: "nearest" });
+  panel.body
+    .querySelector("[data-selected]")
+    ?.scrollIntoView({ block: "nearest" });
 
 export function draw() {
   for (const panel of panels) {
@@ -69,12 +73,15 @@ export function onLayout(keep) {
 
 export function layout() {
   return Object.fromEntries(
-    [...grips].map(([name, bar]) => [name, bar.at()]).filter(([, px]) => px !== null),
+    [...grips]
+      .map(([name, bar]) => [name, bar.at()])
+      .filter(([, px]) => px !== null),
   );
 }
 
 export function relayout(sizes) {
-  for (const [name, px] of Object.entries(sizes ?? {})) grips.get(name)?.set(px);
+  for (const [name, px] of Object.entries(sizes ?? {}))
+    grips.get(name)?.set(px);
 }
 
 const settled = () => remember?.(layout());
@@ -106,7 +113,9 @@ export function mount(start) {
             contextMenu(
               event,
               verbs.map((verb) =>
-                verb.separator ? verb : { ...verb, run: live(verb) ? verb.run : null },
+                verb.separator
+                  ? verb
+                  : { ...verb, run: live(verb) ? verb.run : null },
               ),
             );
           },
@@ -115,7 +124,8 @@ export function mount(start) {
         panel.body,
       );
       column.append(panel.node);
-      if (index < mine.length - 1) column.append(bar("y", panel.node, panel.id));
+      if (index < mine.length - 1)
+        column.append(bar("y", panel.node, panel.id));
     });
   }
 

@@ -27,12 +27,16 @@ export function changed() {
   for (const watcher of watchers) watcher(state);
 }
 
-export const here = () => state.changes.find((change) => change.current)?.change ?? null;
+export const here = () =>
+  state.changes.find((change) => change.current)?.change ?? null;
 
-export const at = (id) => state.changes.find((change) => change.change === id) ?? null;
+export const at = (id) =>
+  state.changes.find((change) => change.change === id) ?? null;
 
 export function absolute(path) {
-  const parts = (path.startsWith("/") ? path : `${state.root}/${path}`).split("/");
+  const parts = (path.startsWith("/") ? path : `${state.root}/${path}`).split(
+    "/",
+  );
   const out = [];
   for (const part of parts) {
     if (part === "" || part === ".") continue;
@@ -79,13 +83,17 @@ export async function refresh() {
     jj.remotes(where),
   ]);
   if (mine !== ticket) return;
-  state.error = logged.error || listed.error || named.error || hosts.error || null;
+  state.error =
+    logged.error || listed.error || named.error || hosts.error || null;
   state.changes = logged.changes;
   state.workspaces = listed.workspaces;
   state.refs = named.refs;
   state.remotes = hosts.remotes;
   state.graph = layout(
-    logged.changes.map((change) => ({ change: change.change, parents: change.parents })),
+    logged.changes.map((change) => ({
+      change: change.change,
+      parents: change.parents,
+    })),
   );
   if (!logged.changes.some((change) => change.change === state.selected)) {
     state.selected = here();
@@ -112,7 +120,8 @@ async function load() {
   if (listed.error || shown.error) state.error = listed.error || shown.error;
   state.files = listed.files;
   state.diff = shown.text;
-  if (state.file && !listed.files.some((file) => file.path === state.file)) state.file = null;
+  if (state.file && !listed.files.some((file) => file.path === state.file))
+    state.file = null;
   changed();
 }
 

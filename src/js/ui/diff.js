@@ -23,18 +23,30 @@ function cut(text) {
   let heading = false;
   for (const line of text.split("\n")) {
     if (line.startsWith("diff --git ")) {
-      file = { path: NAMED.exec(line)?.[1] ?? null, note: null, adds: 0, dels: 0, lines: [] };
+      file = {
+        path: NAMED.exec(line)?.[1] ?? null,
+        note: null,
+        adds: 0,
+        dels: 0,
+        lines: [],
+      };
       files.push(file);
       heading = true;
       continue;
     }
     if (!file) continue;
-    if (heading && !line.startsWith("@@") && !line.startsWith("Binary files ")) {
+    if (
+      heading &&
+      !line.startsWith("@@") &&
+      !line.startsWith("Binary files ")
+    ) {
       if (line.startsWith("new file")) file.note = "new file";
       else if (line.startsWith("deleted file")) file.note = "deleted";
       else if (line.startsWith("rename to ")) file.note = "renamed";
-      if (line.startsWith("+++ ") && line !== "+++ /dev/null") file.path = line.slice(6);
-      else if (line.startsWith("--- ") && line !== "--- /dev/null") file.path ??= line.slice(6);
+      if (line.startsWith("+++ ") && line !== "+++ /dev/null")
+        file.path = line.slice(6);
+      else if (line.startsWith("--- ") && line !== "--- /dev/null")
+        file.path ??= line.slice(6);
       continue;
     }
     heading = false;
@@ -75,7 +87,9 @@ function section(file) {
     head,
     div(
       { dataset: { part: "lines" } },
-      ...shown.map((line) => div({ dataset: { part: "line", kind: kind(line) } }, line || " ")),
+      ...shown.map((line) =>
+        div({ dataset: { part: "line", kind: kind(line) } }, line || " "),
+      ),
       ...(file.lines.length > shown.length
         ? [
             div(
@@ -100,7 +114,8 @@ export const diff = add({
   },
 
   render() {
-    if (!state.selected) return div({ dataset: { part: "empty" } }, "Nothing selected");
+    if (!state.selected)
+      return div({ dataset: { part: "empty" } }, "Nothing selected");
     const files = cut(state.diff);
     if (files.length === 0) {
       const change = at(state.selected);

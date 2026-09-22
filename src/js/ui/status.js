@@ -34,7 +34,10 @@ export const status = add({
     }
     const name = state.root.split("/").filter(Boolean).pop();
     if (!state.repo) {
-      return div({ dataset: { part: "empty" } }, `${name} is not a jj workspace`);
+      return div(
+        { dataset: { part: "empty" } },
+        `${name} is not a jj workspace`,
+      );
     }
     const change = at(here());
     const line = div(
