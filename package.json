@@ -8,13 +8,18 @@
     "dev": "vite",
     "build": "vite build",
     "start": "[ -d bin ] || neu update; neu run",
-    "app:build": "neu build --release"
+    "app:build": "neu build --release",
+    "app:bundle": "node scripts/bundle.js"
   },
   "devDependencies": {
     "@neutralinojs/neu": "^11.4.0",
+    "png2icons": "^2.0.1",
     "purescript": "^0.15.16",
     "purescript-language-server": "^0.18.5",
     "spago": "^1.0.4",
     "vite": "^8.3.0"
+  },
+  "dependencies": {
+    "pathe": "^2.0.3"
   }
 }

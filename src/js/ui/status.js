@@ -1,3 +1,5 @@
+import { basename } from "pathe";
+
 import { div, span } from "../lib/tiny.js";
 import * as jj from "../jj/cli.js";
 import { act, at, here, open, refresh, state } from "../state.js";
@@ -32,7 +34,7 @@ export const status = add({
     if (!state.root) {
       return div({ dataset: { part: "empty" } }, "No repository open");
     }
-    const name = state.root.split("/").filter(Boolean).pop();
+    const name = basename(state.root);
     if (!state.repo) {
       return div(
         { dataset: { part: "empty" } },

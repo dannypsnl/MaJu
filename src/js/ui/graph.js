@@ -1,3 +1,5 @@
+import { basename } from "pathe";
+
 import { contextMenu } from "../lib/context-menu.js";
 import { button, div, input, li, span, textarea, ul } from "../lib/tiny.js";
 import * as jj from "../jj/cli.js";
@@ -425,7 +427,7 @@ async function addWorkspace(change) {
     defaultPath: state.root,
   });
   if (!where) return;
-  const name = where.split("/").filter(Boolean).pop();
+  const name = basename(where);
   await act(jj.addWorkspace(state.root, name, where, change));
 }
 

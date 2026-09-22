@@ -1,3 +1,5 @@
+import { resolve } from "pathe";
+
 import * as jj from "./jj/cli.js";
 import { layout } from "purs/Jj.Graph/index.js";
 
@@ -33,18 +35,15 @@ export const here = () =>
 export const at = (id) =>
   state.changes.find((change) => change.change === id) ?? null;
 
-export function absolute(path) {
-  const parts = (path.startsWith("/") ? path : `${state.root}/${path}`).split(
-    "/",
-  );
-  const out = [];
-  for (const part of parts) {
-    if (part === "" || part === ".") continue;
-    if (part === ".." && out.length > 0) out.pop();
-    else out.push(part);
-  }
-  return `/${out.join("/")}`;
-}
+/*
+    jj reports workspace paths in whatever shape the platform uses — relative to the
+    repo root, or absolute with a drive letter and backslashes on Windows — and they
+    come back to us as a cwd or an argument. pathe is node's path module rewritten to
+    understand both separators everywhere and to answer in forward slashes, which
+    every platform's jj accepts; doing this by hand is what tied the old code to
+    POSIX.
+*/
+export const absolute = (path) => resolve(state.root ?? "", path);
 
 let ticket = 0;
 let asking = 0;

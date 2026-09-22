@@ -1,6 +1,28 @@
-const PATH = "/opt/homebrew/bin:/usr/local/bin:$HOME/.cargo/bin:$PATH";
+/*
+    A GUI app is not launched from a login shell, so it inherits a bare PATH that
+    rarely holds jj: the places an installer is likely to have put it have to be
+    put back by hand. Neutralinojs hands the command to the platform's shell —
+    /bin/sh on Unix, cmd.exe on Windows — so both the prefix and the quoting below
+    are written twice, once per shell dialect.
+*/
+const WINDOWS = NL_OS === "Windows";
 
-const quote = (value) => `'${String(value).replaceAll("'", `'\\''`)}'`;
+const PATHS = {
+  Darwin: "/opt/homebrew/bin:/usr/local/bin:$HOME/.cargo/bin:$PATH",
+  Linux: "/usr/local/bin:/usr/bin:$HOME/.cargo/bin:$HOME/.local/bin:$PATH",
+  Windows: "%USERPROFILE%\\.cargo\\bin;%LOCALAPPDATA%\\Programs\\jj;%PATH%",
+};
+
+// cmd.exe has no way to set a variable for one command, so it takes two statements;
+// it also has no escape for a quote inside a quoted argument other than doubling it.
+const PREFIX = WINDOWS
+  ? `set "PATH=${PATHS.Windows}" &&`
+  : `PATH=${PATHS[NL_OS] ?? PATHS.Linux}`;
+
+const quote = (value) =>
+  WINDOWS
+    ? `"${String(value).replaceAll('"', '""')}"`
+    : `'${String(value).replaceAll("'", `'\\''`)}'`;
 
 const LOG_FIELDS = [
   "change_id.short(8)",
@@ -53,7 +75,7 @@ function record(entry) {
 }
 
 export async function run(root, args) {
-  const command = `PATH=${PATH} jj --color never --no-pager ${args.map(quote).join(" ")}`;
+  const command = `${PREFIX} jj --color never --no-pager ${args.map(quote).join(" ")}`;
   const { exitCode, stdOut, stdErr } = await Neutralino.os.execCommand(
     command,
     {

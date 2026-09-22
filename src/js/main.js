@@ -4,6 +4,8 @@ import "./ui/graph.js";
 import "./ui/diff.js";
 import "./ui/command-log.js";
 
+import { basename } from "pathe";
+
 import * as jj from "./jj/cli.js";
 import { open, refresh, state, subscribe } from "./state.js";
 import { draw, mount, onLayout, relayout } from "./ui/panels.js";
@@ -68,7 +70,7 @@ let remembered = null;
 subscribe(() => {
   if (state.root === remembered) return;
   remembered = state.root;
-  const name = state.root?.split("/").filter(Boolean).pop();
+  const name = state.root ? basename(state.root) : null;
   const title = name ? `MaJu — ${name}` : "MaJu";
   Neutralino.window.setTitle(title).catch(() => {
     console.error("failed to set title");

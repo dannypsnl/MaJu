@@ -7,4 +7,5 @@ npm install
 npm run purs
 npm test
 npm start
+npm run app:bundle
 ```
