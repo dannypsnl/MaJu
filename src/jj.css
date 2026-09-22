@@ -115,6 +115,10 @@ ul {
     line-height: 16px;
 }
 
+[data-part="at"] {
+    cursor: grab;
+}
+
 [data-part="at"][data-current="true"] {
     background: var(--green);
     color: #ffffff;
@@ -200,6 +204,19 @@ ul {
 
 [data-part="asking"] {
     padding: 2px 10px;
+}
+
+textarea[data-part="field"] {
+    display: block;
+    resize: vertical;
+    line-height: 1.4;
+}
+
+[data-part="hint"] {
+    display: block;
+    padding: 2px 2px 0;
+    color: var(--dim);
+    font-size: 11px;
 }
 
 [data-part="field"] {

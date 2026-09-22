@@ -73,6 +73,12 @@ export async function isRepo(root) {
 export async function log(root, limit = 100) {
   const { ok, out, error } = await run(root, [
     "log",
+    // `all()` rather than the user's revsets.log, which is tuned for a terminal
+    // and elides whatever it thinks is uninteresting. A panel with room to scroll
+    // wants the whole graph; the limit below is what keeps it finite, and an edge
+    // that runs past it is already drawn dashed.
+    "-r",
+    "all()",
     "-n",
     String(limit),
     "--no-graph",
@@ -184,6 +190,20 @@ export async function remotes(root) {
       return { name: line.slice(0, at), url: line.slice(at + 1) };
     });
   return { error: null, remotes: list };
+}
+
+// The log template flattens descriptions to their first line, which is all a row
+// can show — editing one needs the whole thing back.
+export async function description(root, change) {
+  const { ok, out } = await run(root, [
+    "log",
+    "-r",
+    change,
+    "--no-graph",
+    "-T",
+    "description",
+  ]);
+  return ok ? out.replace(/\n+$/, "") : "";
 }
 
 export const describe = (root, change, message) =>

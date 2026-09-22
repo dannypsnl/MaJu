@@ -1,5 +1,5 @@
 import { contextMenu } from "../lib/context-menu.js";
-import { button, div, input, li, span, ul } from "../lib/tiny.js";
+import { button, div, input, li, span, textarea, ul } from "../lib/tiny.js";
 import * as jj from "../jj/cli.js";
 import { gutter, width } from "../jj/gutter.js";
 import { absolute, act, at, here, open, select, state } from "../state.js";
@@ -132,6 +132,7 @@ function onto(source, destination, event) {
 function takes(change, held = dragging) {
   if (!held) return false;
   if (held.kind === "change") return held.id !== change.change;
+  if (held.kind === "space") return held.at !== change.change;
   return !change.bookmarks.includes(held.id);
 }
 
@@ -187,6 +188,10 @@ function line(change, place, lanes) {
         node.removeAttribute("data-drop");
         if (!takes(change, held)) return;
         if (held.kind === "change") onto(held.id, change.change, event);
+        // `jj edit` run from the workspace's own root is what moves that
+        // workspace, so the path — not state.root — is the cwd here.
+        else if (held.kind === "space")
+          act(jj.edit(absolute(held.path), change.change));
         else act(jj.moveBookmark(state.root, held.id, change.change));
       },
     },
@@ -194,8 +199,18 @@ function line(change, place, lanes) {
     ...spacesAt(change.change).map((space) =>
       span({
         dataset: { part: "at", current: String(change.current) },
-        title: space.path,
+        draggable: true,
+        title: `${space.path}\nDrag ${space.name}@ onto another change to work on it there`,
         textContent: `${space.name}@`,
+        ondragstart: (event) => {
+          event.stopPropagation();
+          dragging = { kind: "space", id: space.name, at: change.change, path: space.path };
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", `${space.name}@`);
+        },
+        ondragend: () => {
+          dragging = null;
+        },
       }),
     ),
     span({ dataset: { part: "id" }, textContent: change.change }),
@@ -320,10 +335,30 @@ function remoteVerbs(label) {
   ];
 }
 
+const ROWS = { least: 3, most: 12 };
+
 function ask() {
-  const field = input({
+  // A description is prose and wants Enter to mean a new line, so submitting
+  // moves to the modifier. Every other prompt is one short value, where Enter
+  // submitting is the whole point.
+  const many = Boolean(prompting.many);
+  const submit = () => {
+    const { change, run } = prompting;
+    const value = field.value;
+    settle();
+    act(run(change, value));
+  };
+
+  const field = (many ? textarea : input)({
     dataset: { part: "field" },
-    type: "text",
+    ...(many
+      ? {
+          rows: Math.min(
+            Math.max(prompting.value.split("\n").length, ROWS.least),
+            ROWS.most,
+          ),
+        }
+      : { type: "text" }),
     value: prompting.value,
     placeholder: prompting.placeholder,
     oninput: () => {
@@ -331,25 +366,31 @@ function ask() {
     },
     onkeydown: (event) => {
       event.stopPropagation();
-      if (event.key === "Enter") {
-        const { change, run } = prompting;
-        const value = field.value;
-        settle();
-        act(run(change, value));
-      } else if (event.key === "Escape") cancel();
+      if (event.key === "Escape") cancel();
+      else if (event.key === "Enter" && (!many || event.metaKey || event.ctrlKey))
+        submit();
     },
   });
+
   queueMicrotask(() => field.focus());
-  return li({ dataset: { part: "asking" } }, field);
+  return li(
+    { dataset: { part: "asking" } },
+    field,
+    ...(many
+      ? [span({ dataset: { part: "hint" } }, "\u2318\u21a9 to save, esc to cancel")]
+      : []),
+  );
 }
 
-const describing = (change) =>
+async function describing(change) {
   asking({
     change: change.change,
-    value: change.description,
+    value: await jj.description(state.root, change.change),
     placeholder: "Description",
+    many: true,
     run: (id, value) => jj.describe(state.root, id, value),
   });
+}
 
 const naming = (change) =>
   asking({
@@ -409,7 +450,18 @@ function verbs(change) {
   const id = change.change;
   return [
     { text: "Edit", key: "e", run: () => act(jj.edit(state.root, id)) },
-    { text: "New Child", key: "n", run: () => act(jj.create(state.root, id)) },
+    {
+      // Marks, when there are any, are the selection this acts on — several of
+      // them is what makes the new change a merge, in marking order, since that
+      // is the order jj reads its parents in.
+      text: "New Child",
+      key: "n",
+      run: () => {
+        const parents = marks().length > 0 ? marks() : [id];
+        marked.clear();
+        return act(jj.create(state.root, ...parents));
+      },
+    },
     {
       text: marked.has(id) ? "Unmark" : "Mark",
       key: " ",
