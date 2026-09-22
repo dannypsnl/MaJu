@@ -1,7 +1,17 @@
 const LANE = 12;
-const ROW = 24;
-const MIDDLE = ROW / 2;
 const LANES = 6;
+
+/*
+    The row height is set in CSS, on the list item this gutter is drawn inside.
+    Reading it back from there rather than repeating the number is what keeps the
+    edges meeting the rows they connect when the type scale changes.
+*/
+let tall = null;
+const row = () =>
+  (tall ??=
+    Number.parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue("--row"),
+    ) || 24);
 
 const SVG = "http://www.w3.org/2000/svg";
 
@@ -34,6 +44,8 @@ export const width = (lanes) => lanes * LANE;
 
 export function gutter(place, lanes, change) {
   const across = width(lanes);
+  const ROW = row();
+  const MIDDLE = ROW / 2;
   const svg = node("svg", {
     "data-part": "gutter",
     width: across,

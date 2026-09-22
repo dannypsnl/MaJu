@@ -37,7 +37,7 @@
     padding: 0 6px;
     background: #e6e6ea;
     color: var(--dim);
-    font-size: 11px;
+    font-size: var(--small);
     line-height: 16px;
     font-variant-numeric: tabular-nums;
 }
@@ -118,7 +118,7 @@
     background: var(--panel);
     color: var(--fg);
     font: inherit;
-    font-size: 11px;
+    font-size: var(--small);
     line-height: 17px;
     cursor: pointer;
 }

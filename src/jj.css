@@ -11,7 +11,7 @@ ul {
     display: flex;
     align-items: center;
     gap: 6px;
-    height: 24px;
+    height: var(--row);
     padding: 0 10px;
     white-space: nowrap;
 }
@@ -35,7 +35,7 @@ ul {
     flex: none;
     color: var(--magenta);
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: var(--small);
 }
 
 [data-panel="status"] [data-part="line"] {
@@ -111,8 +111,8 @@ ul {
     padding: 0 5px;
     background: #dcecd6;
     color: var(--green);
-    font-size: 11px;
-    line-height: 16px;
+    font-size: var(--small);
+    line-height: 18px;
 }
 
 [data-part="at"] {
@@ -130,8 +130,8 @@ ul {
     padding: 0 5px;
     background: #dde9fa;
     color: var(--blue);
-    font-size: 11px;
-    line-height: 16px;
+    font-size: var(--small);
+    line-height: 18px;
 }
 
 [data-part="bookmark"]:not([data-remote]) {
@@ -157,8 +157,8 @@ ul {
     appearance: none;
     color: inherit;
     flex: none;
-    width: 14px;
-    height: 14px;
+    width: 1.35em;
+    height: 1.35em;
     margin-right: 3px;
     padding: 0;
     border: none;
@@ -166,8 +166,8 @@ ul {
     background-color: currentColor;
     vertical-align: -2px;
     cursor: default;
-    -webkit-mask: var(--upload) center / 14px 14px no-repeat;
-    mask: var(--upload) center / 14px 14px no-repeat;
+    -webkit-mask: var(--upload) center / 100% 100% no-repeat;
+    mask: var(--upload) center / 100% 100% no-repeat;
 }
 
 [data-part="push"]:hover {
@@ -198,8 +198,8 @@ ul {
     padding: 0 5px;
     background: #f7dedb;
     color: var(--red);
-    font-size: 11px;
-    line-height: 16px;
+    font-size: var(--small);
+    line-height: 18px;
 }
 
 [data-part="asking"] {
@@ -216,7 +216,7 @@ textarea[data-part="field"] {
     display: block;
     padding: 2px 2px 0;
     color: var(--dim);
-    font-size: 11px;
+    font-size: var(--small);
 }
 
 [data-part="field"] {
@@ -237,7 +237,7 @@ textarea[data-part="field"] {
     width: 14px;
     color: var(--dim);
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: var(--small);
     text-align: center;
 }
 
@@ -268,7 +268,7 @@ textarea[data-part="field"] {
 [data-part="bookmark-row"] [data-part="remote"] {
     flex: none;
     color: var(--dim);
-    font-size: 11px;
+    font-size: var(--small);
 }
 
 [data-part="workspace"][data-current="true"] [data-part="name"] {

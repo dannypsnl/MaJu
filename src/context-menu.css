@@ -32,7 +32,7 @@
     flex: none;
     color: var(--dim);
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: var(--small);
 }
 
 [data-part="menu"] [data-part="item"]:focus [data-part="key"] {

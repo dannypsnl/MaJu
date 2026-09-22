@@ -31,7 +31,21 @@
 
     --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
-    --upload: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2016%2016'%3E%3Cmask%20id='a'%3E%3Crect%20width='16'%20height='16'%20fill='white'/%3E%3Cpath%20d='M8%2012.3V6.8M5.5%209.3%208%206.8l2.5%202.5'%20fill='none'%20stroke='black'%20stroke-width='2.4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/mask%3E%3Cpath%20mask='url%28%23a%29'%20fill='black'%20d='M4.9%2013.2h6.4a3%203%200%200%200%20.6-5.95%204%204%200%200%200-7.7-.9%203.1%203.1%200%200%200%20.7%206.85z'/%3E%3C/svg%3E");
+    /* Chips, badges, ids, key hints — everything that sits beside body text. */
+    --small: 12px;
+
+    /*
+        One row of the graph, files or bookmarks. The gutter SVG draws its edges to
+        this same height, and reads it from here so the two cannot drift apart.
+    */
+    --row: 26px;
+
+    /*
+        cloud-upload from microsoft/vscode-codicons, CC BY 4.0.
+        https://github.com/microsoft/vscode-codicons
+        Used as a CSS mask, so only its alpha matters and fill is forced to black.
+    */
+    --upload: url("data:image/svg+xml,%3Csvg%20width='16'%20height='16'%20viewBox='0%200%2016%2016'%20xmlns='http://www.w3.org/2000/svg'%20fill='%23000'%3E%3Cpath%20d='M11.5%207C9.015%207%207%209.015%207%2011.5C7%2013.985%209.015%2016%2011.5%2016C13.985%2016%2016%2013.985%2016%2011.5C16%209.015%2013.985%207%2011.5%207ZM13.854%2011.854C13.659%2012.049%2013.342%2012.049%2013.147%2011.854L12.001%2010.708V14.001C12.001%2014.277%2011.777%2014.501%2011.501%2014.501C11.225%2014.501%2011.001%2014.277%2011.001%2014.001V10.708L9.855%2011.854C9.66%2012.049%209.343%2012.049%209.148%2011.854C8.953%2011.659%208.953%2011.342%209.148%2011.147L11.148%209.147C11.196%209.099%2011.251%209.063%2011.31%209.039C11.368%209.015%2011.432%209.001%2011.498%209.001H11.504C11.571%209.001%2011.634%209.015%2011.692%209.039C11.75%209.063%2011.805%209.099%2011.852%209.145L11.855%209.148L13.855%2011.148C14.05%2011.343%2014.05%2011.66%2013.855%2011.855L13.854%2011.854ZM4.25%2012H6V13H4.25C2.455%2013%201%2011.545%201%209.75C1%208.029%202.338%206.62%204.03%206.507C4.273%204.53%205.958%203%208%203C9.862%203%2011.411%204.278%2011.857%206H10.811C10.397%204.838%209.303%204%208%204C6.343%204%205%205.343%205%207C5%207.276%204.776%207.5%204.5%207.5H4.25C3.007%207.5%202%208.507%202%209.75C2%2010.993%203.007%2012%204.25%2012Z'/%3E%3C/svg%3E");
 }
 
 html,
@@ -43,7 +57,7 @@ body {
 body {
     background: var(--app);
     color: var(--fg);
-    font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     -webkit-user-select: none;
     user-select: none;
     cursor: default;
