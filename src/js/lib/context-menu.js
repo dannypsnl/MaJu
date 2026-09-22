@@ -79,13 +79,27 @@ export function contextMenu(event, items) {
   place(menu, event.clientX, event.clientY);
   menu.focus();
 
+  /*
+      The menu holds focus, so the keyboard is its own. Nothing may reach the panel
+      underneath: the same letters are bound there, and a key that ran the verb by
+      that route would leave the menu standing open over the result.
+  */
   menu.addEventListener(
     "keydown",
     (keyed) => {
+      keyed.stopPropagation();
+
       if (keyed.key === "Escape") close();
       else if (keyed.key === "ArrowDown") move(menu, 1);
       else if (keyed.key === "ArrowUp") move(menu, -1);
-      else return;
+      else if (keyed.key === "Enter") document.activeElement?.click?.();
+      else {
+        // A disabled item has no run, and so cannot be reached by its key either.
+        const item = items.find((entry) => entry.key === keyed.key && entry.run);
+        if (!item) return;
+        close();
+        item.run();
+      }
       keyed.preventDefault();
     },
     { signal },
