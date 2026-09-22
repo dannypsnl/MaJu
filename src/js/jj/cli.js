@@ -12,6 +12,7 @@ const LOG_FIELDS = [
   'remote_bookmarks.filter(|b| b.remote() != "git").map(|b| b.name() ++ "@" ++ b.remote()).join(",")',
   'author.timestamp().format("%Y-%m-%d %H:%M")',
   'parents.map(|p| p.change_id().short(8)).join(" ")',
+  'if(immutable,"immutable","-")',
   "description.first_line()",
 ];
 
@@ -101,6 +102,7 @@ export async function log(root, limit = 100) {
         remote,
         time,
         parents,
+        immutable,
       ] = parts;
       return {
         change,
@@ -112,7 +114,9 @@ export async function log(root, limit = 100) {
         remotes: remote ? remote.split(",") : [],
         time,
         parents: parents ? parents.split(" ") : [],
-        description: parts.slice(9).join("\t"),
+        immutable: immutable === "immutable",
+        // Last, and joined back up: a description may itself contain tabs.
+        description: parts.slice(10).join("\t"),
       };
     });
   return { error: null, changes };

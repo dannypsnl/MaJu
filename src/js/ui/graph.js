@@ -3,7 +3,7 @@ import { button, div, input, li, span, textarea, ul } from "../lib/tiny.js";
 import * as jj from "../jj/cli.js";
 import { gutter, width } from "../jj/gutter.js";
 import { absolute, act, at, here, open, select, state } from "../state.js";
-import { add, draw, focus } from "./panels.js";
+import { add, draw, focus, press } from "./panels.js";
 import { refresh } from "../state.js";
 let rebasing = null;
 let dragging = null;
@@ -273,7 +273,9 @@ function ahead(bookmark, how) {
       title: `Push ${bookmark} to ${how.remote}`,
       onclick: (event) => {
         event.stopPropagation();
-        act(jj.pushBookmark(state.root, bookmark, how.remote));
+        press(event.currentTarget, () =>
+          act(jj.pushBookmark(state.root, bookmark, how.remote)),
+        );
       },
     }),
   ];
@@ -448,8 +450,16 @@ function workspaceVerbs(change) {
 
 function verbs(change) {
   const id = change.change;
+  // jj refuses to rewrite an immutable commit, so the verbs that would are shown
+  // greyed rather than left to fail — the menu is where the reason belongs.
+  const mutable = () => !change.immutable;
   return [
-    { text: "Edit", key: "e", run: () => act(jj.edit(state.root, id)) },
+    {
+      text: "Edit",
+      key: "e",
+      when: mutable,
+      run: () => act(jj.edit(state.root, id)),
+    },
     {
       // Marks, when there are any, are the selection this acts on — several of
       // them is what makes the new change a merge, in marking order, since that
@@ -476,7 +486,12 @@ function verbs(change) {
       },
     },
     { separator: true },
-    { text: "Describe…", key: "d", run: () => describing(change) },
+    {
+      text: "Describe…",
+      key: "d",
+      when: mutable,
+      run: () => describing(change),
+    },
     { text: "Set Bookmark…", key: "b", run: () => naming(change) },
     { separator: true },
     {
@@ -488,16 +503,18 @@ function verbs(change) {
     {
       text: "Squash Into Parent",
       key: "s",
+      when: mutable,
       run: () => act(jj.squash(state.root, id)),
     },
     {
       text: "Absorb Into Ancestors",
+      when: mutable,
       run: () => act(jj.absorb(state.root, id)),
     },
     {
       text: rebasing === id ? "Rebasing… pick a destination" : "Rebase…",
       key: "r",
-      when: () => rebasing !== id,
+      when: () => rebasing !== id && mutable(),
       run: () => {
         rebasing = id;
         draw();
@@ -510,6 +527,7 @@ function verbs(change) {
       text: "Abandon Change",
       key: "a",
       danger: true,
+      when: mutable,
       run: () => act(jj.abandon(state.root, id)),
     },
   ];

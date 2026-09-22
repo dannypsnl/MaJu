@@ -135,3 +135,29 @@
 [data-part="head"] [data-part="action"]:active {
     background: var(--selected-off);
 }
+
+[data-part="head"] [data-part="action"]:active {
+    transform: translateY(1px);
+}
+
+/*
+    Pressed, not running: the command is fired from this animation's end event, so it
+    is deliberately short. Reduced motion keeps a token animation rather than none,
+    because animationend is what sets the command going.
+*/
+@keyframes press {
+    40% {
+        transform: scale(0.92);
+        opacity: 0.55;
+    }
+}
+
+[data-part="head"] [data-part="action"][data-running] {
+    animation: press 220ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-part="head"] [data-part="action"][data-running] {
+        animation: press 1ms linear;
+    }
+}

@@ -50,6 +50,28 @@ function pressed(event) {
   verb.run();
 }
 
+/*
+    A press plays its animation first and runs the command from the animation's own
+    end event. The command redraws the panel, which builds a new button — so running
+    it first would tear the animation's element out from under it.
+*/
+export function press(node, run) {
+  if (node.dataset.running !== undefined) return;
+  node.dataset.running = "";
+
+  let gone = false;
+  const go = () => {
+    if (gone) return;
+    gone = true;
+    run();
+  };
+
+  node.addEventListener("animationend", go, { once: true });
+  // An element that never animates — reduced motion, a style that did not load —
+  // never fires animationend, and the command still has to run.
+  setTimeout(go, 400);
+}
+
 const reveal = (panel) =>
   panel.body
     .querySelector("[data-selected]")
@@ -64,7 +86,10 @@ export function draw() {
       ...(count ? [span({ dataset: { part: "count" } }, count)] : []),
       ...actions.map((action) =>
         button(
-          { dataset: { part: "action" }, onclick: () => action.run() },
+          {
+            dataset: { part: "action" },
+            onclick: (event) => press(event.currentTarget, action.run),
+          },
           action.text,
         ),
       ),

@@ -280,3 +280,21 @@ textarea[data-part="field"] {
 [data-part="change"][data-marked] {
     box-shadow: inset 3px 0 0 var(--accent);
 }
+
+/* The upload nudges upward on its way out, which is the direction it means. */
+@keyframes send {
+    45% {
+        transform: translateY(-3px);
+        opacity: 0.45;
+    }
+}
+
+[data-part="push"][data-running] {
+    animation: send 260ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-part="push"][data-running] {
+        animation: send 1ms linear;
+    }
+}
