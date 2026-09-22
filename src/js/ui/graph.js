@@ -548,6 +548,7 @@ export const graph = add({
   actions: () => [
     {
       text: "Fetch",
+      icon: "download",
       when: () => state.repo && state.remotes.length > 0,
       run: () => act(jj.fetch(state.root)),
     },

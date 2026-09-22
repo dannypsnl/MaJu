@@ -114,11 +114,17 @@ export function draw() {
           {
             dataset: { part: "action", ...(turning ? { running: "" } : {}) },
             disabled: turning,
+            title: action.text,
             onclick: () => spin(id, action.run),
           },
           // The label stays in place and only goes invisible, so the button keeps
           // its width and the row beside it does not shift while one runs.
-          span({ dataset: { part: "label" } }, action.text),
+          span(
+            { dataset: { part: "label" } },
+            action.icon
+              ? span({ dataset: { part: "icon", icon: action.icon } })
+              : action.text,
+          ),
           ...(turning ? [span({ dataset: { part: "spinner" } })] : []),
         );
       }),

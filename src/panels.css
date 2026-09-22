@@ -181,3 +181,26 @@
         opacity: 0.6;
     }
 }
+
+/*
+    An action can wear an icon instead of its words. The words stay as the title,
+    so the button still says what it does; the icon is masked the same way the push
+    button is, which is what keeps it in step with the text beside it.
+*/
+[data-part="head"] [data-part="action"] [data-part="icon"] {
+    display: block;
+    width: 1.15em;
+    height: 1.15em;
+    background-color: currentColor;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+}
+
+[data-part="icon"][data-icon="download"] {
+    -webkit-mask-image: var(--download);
+    mask-image: var(--download);
+}
