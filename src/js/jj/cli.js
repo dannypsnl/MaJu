@@ -73,6 +73,12 @@ export async function isRepo(root) {
 export async function log(root, limit = 100) {
   const { ok, out, error } = await run(root, [
     "log",
+    // `all()` rather than the user's revsets.log, which is tuned for a terminal
+    // and elides whatever it thinks is uninteresting. A panel with room to scroll
+    // wants the whole graph; the limit below is what keeps it finite, and an edge
+    // that runs past it is already drawn dashed.
+    "-r",
+    "all()",
     "-n",
     String(limit),
     "--no-graph",
