@@ -115,6 +115,10 @@ ul {
     line-height: 16px;
 }
 
+[data-part="at"] {
+    cursor: grab;
+}
+
 [data-part="at"][data-current="true"] {
     background: var(--green);
     color: #ffffff;

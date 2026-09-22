@@ -113,6 +113,7 @@ function onto(source, destination, event) {
 function takes(change, held = dragging) {
   if (!held) return false;
   if (held.kind === "change") return held.id !== change.change;
+  if (held.kind === "space") return held.at !== change.change;
   return !change.bookmarks.includes(held.id);
 }
 
@@ -166,6 +167,10 @@ function line(change, place, lanes) {
         node.removeAttribute("data-drop");
         if (!takes(change, held)) return;
         if (held.kind === "change") onto(held.id, change.change, event);
+        // `jj edit` run from the workspace's own root is what moves that
+        // workspace, so the path — not state.root — is the cwd here.
+        else if (held.kind === "space")
+          act(jj.edit(absolute(held.path), change.change));
         else act(jj.moveBookmark(state.root, held.id, change.change));
       },
     },
@@ -173,8 +178,18 @@ function line(change, place, lanes) {
     ...spacesAt(change.change).map((space) =>
       span({
         dataset: { part: "at", current: String(change.current) },
-        title: space.path,
+        draggable: true,
+        title: `${space.path}\nDrag ${space.name}@ onto another change to work on it there`,
         textContent: `${space.name}@`,
+        ondragstart: (event) => {
+          event.stopPropagation();
+          dragging = { kind: "space", id: space.name, at: change.change, path: space.path };
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", `${space.name}@`);
+        },
+        ondragend: () => {
+          dragging = null;
+        },
       }),
     ),
     span({ dataset: { part: "id" }, textContent: change.change }),
