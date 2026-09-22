@@ -1,5 +1,5 @@
 import { contextMenu } from "../lib/context-menu.js";
-import { div, header, section, span } from "../lib/tiny.js";
+import { button, div, header, section, span } from "../lib/tiny.js";
 import { subscribe } from "../state.js";
 import { grip } from "./split.js";
 
@@ -58,9 +58,16 @@ const reveal = (panel) =>
 export function draw() {
   for (const panel of panels) {
     const count = panel.count?.();
+    const actions = (panel.actions?.() ?? []).filter(live);
     panel.head.replaceChildren(
       span({ dataset: { part: "name" } }, panel.title()),
       ...(count ? [span({ dataset: { part: "count" } }, count)] : []),
+      ...actions.map((action) =>
+        button(
+          { dataset: { part: "action" }, onclick: () => action.run() },
+          action.text,
+        ),
+      ),
     );
     panel.body.replaceChildren(panel.render());
     reveal(panel);

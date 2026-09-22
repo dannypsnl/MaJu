@@ -4,7 +4,7 @@ import * as jj from "../jj/cli.js";
 import { gutter, width } from "../jj/gutter.js";
 import { absolute, act, at, here, open, select, state } from "../state.js";
 import { add, draw, focus } from "./panels.js";
-
+import { refresh } from "../state.js";
 let rebasing = null;
 let dragging = null;
 let prompting = null;
@@ -436,6 +436,29 @@ export const graph = add({
   title: () =>
     rebasing ? `Rebasing ${rebasing} — pick a destination` : "Graph",
   count: () => (state.changes.length ? String(state.changes.length) : ""),
+
+  actions: () => [
+    {
+      text: "Fetch",
+      when: () => state.repo && state.remotes.length > 0,
+      run: () => act(jj.fetch(state.root)),
+    },
+    {
+      text: "Undo",
+      when: () => state.repo && state.remotes.length > 0,
+      run: () => act(jj.undo(state.root)),
+    },
+    {
+      text: "Redo",
+      when: () => state.repo && state.remotes.length > 0,
+      run: () => act(jj.redo(state.root)),
+    },
+    {
+      text: "Refresh",
+      when: () => state.repo && state.remotes.length > 0,
+      run: () => act(refresh()),
+    },
+  ],
 
   move(by) {
     if (state.changes.length === 0) return;

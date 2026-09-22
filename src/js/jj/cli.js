@@ -227,7 +227,10 @@ export const untrackBookmark = (root, name, remote) =>
 export const addRemote = (root, name, url) =>
   run(root, ["git", "remote", "add", name, url]);
 
+export const fetch = (root) => run(root, ["git", "fetch", "--all-remotes"]);
+
 export const undo = (root) => run(root, ["undo"]);
+export const redo = (root) => run(root, ["redo"]);
 
 export const addWorkspace = (root, name, path, change) =>
   run(root, ["workspace", "add", "--name", name, "-r", change, path]);
