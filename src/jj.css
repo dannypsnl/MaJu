@@ -298,3 +298,53 @@ textarea[data-part="field"] {
         animation: send 1ms linear;
     }
 }
+
+/*
+    One step along the graph for a single file. Hidden until the row is under the
+    pointer or selected, so a long list stays a list rather than a wall of buttons.
+*/
+[data-part="file"] [data-part="shift"] {
+    flex: none;
+    visibility: hidden;
+    border: none;
+    border-radius: 4px;
+    padding: 0 5px;
+    background: transparent;
+    color: var(--fg);
+    font: inherit;
+    /* The arrow glyph is a thin one, so it carries a step more size than a label. */
+    font-size: calc(var(--small) + 2px);
+    line-height: 18px;
+    cursor: pointer;
+}
+
+[data-part="file"]:hover [data-part="shift"],
+[data-part="file"][data-selected] [data-part="shift"] {
+    visibility: visible;
+}
+
+[data-part="file"] [data-part="shift"]:hover {
+    background: var(--panel);
+    color: var(--fg);
+}
+
+[data-part="shift"][data-running] {
+    animation: press 220ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-part="shift"][data-running] {
+        animation: press 1ms linear;
+    }
+}
+
+/* Inert, but still meant to be read — the tooltip on it is the explanation. */
+[data-part="file"] [data-part="shift"]:disabled {
+    color: var(--dim);
+    cursor: default;
+}
+
+[data-part="file"] [data-part="shift"]:disabled:hover {
+    background: transparent;
+    color: var(--dim);
+}

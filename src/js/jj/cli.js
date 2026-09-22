@@ -230,6 +230,11 @@ export const rebaseTree = (root, source, destination) =>
 export const absorb = (root, change, path = null) =>
   run(root, path ? ["absorb", "-f", change, path] : ["absorb", "-f", change]);
 
+// One file's worth of a change, moved to a neighbour. jj abandons the source if
+// this empties it, which is the same rule as any other squash.
+export const moveFile = (root, from, into, path) =>
+  run(root, ["squash", "--from", from, "--into", into, path]);
+
 export const squashInto = (root, from, into) =>
   run(root, ["squash", "--from", from, "--into", into]);
 
