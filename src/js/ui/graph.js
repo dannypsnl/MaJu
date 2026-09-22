@@ -3,7 +3,7 @@ import { button, div, input, li, span, textarea, ul } from "../lib/tiny.js";
 import * as jj from "../jj/cli.js";
 import { gutter, width } from "../jj/gutter.js";
 import { absolute, act, at, here, open, select, state } from "../state.js";
-import { add, draw, focus, press } from "./panels.js";
+import { add, draw, focus, press, spin, spins } from "./panels.js";
 import { refresh } from "../state.js";
 let rebasing = null;
 let dragging = null;
@@ -266,16 +266,20 @@ function line(change, place, lanes) {
 
 function ahead(bookmark, how) {
   if (how?.mark !== "push") return [];
+  // Per bookmark and remote: two chips can be pushing at once, and each spins alone.
+  const id = `push\u0000${bookmark}\u0000${how.remote}`;
+  const turning = spins(id);
   return [
     button({
-      dataset: { part: "push" },
+      dataset: { part: "push", ...(turning ? { running: "" } : {}) },
       type: "button",
-      title: `Push ${bookmark} to ${how.remote}`,
+      disabled: turning,
+      title: turning
+        ? `Pushing ${bookmark} to ${how.remote}\u2026`
+        : `Push ${bookmark} to ${how.remote}`,
       onclick: (event) => {
         event.stopPropagation();
-        press(event.currentTarget, () =>
-          act(jj.pushBookmark(state.root, bookmark, how.remote)),
-        );
+        spin(id, () => act(jj.pushBookmark(state.root, bookmark, how.remote)));
       },
     }),
   ];

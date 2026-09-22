@@ -72,6 +72,29 @@ export function press(node, run) {
   setTimeout(go, 400);
 }
 
+/*
+    Buttons whose command is still running. A spinner has to last as long as the
+    command does, and draw() builds a new button each time, so the fact lives here
+    rather than on the element.
+*/
+const spinning = new Set();
+
+const key = (panel, action) => `${panel.id}\u0000${action.text}`;
+
+export const spins = (id) => spinning.has(id);
+
+export async function spin(id, run) {
+  if (spinning.has(id)) return;
+  spinning.add(id);
+  draw();
+  try {
+    await run();
+  } finally {
+    spinning.delete(id);
+    draw();
+  }
+}
+
 const reveal = (panel) =>
   panel.body
     .querySelector("[data-selected]")
@@ -84,15 +107,21 @@ export function draw() {
     panel.head.replaceChildren(
       span({ dataset: { part: "name" } }, panel.title()),
       ...(count ? [span({ dataset: { part: "count" } }, count)] : []),
-      ...actions.map((action) =>
-        button(
+      ...actions.map((action) => {
+        const id = key(panel, action);
+        const turning = spins(id);
+        return button(
           {
-            dataset: { part: "action" },
-            onclick: (event) => press(event.currentTarget, action.run),
+            dataset: { part: "action", ...(turning ? { running: "" } : {}) },
+            disabled: turning,
+            onclick: () => spin(id, action.run),
           },
-          action.text,
-        ),
-      ),
+          // The label stays in place and only goes invisible, so the button keeps
+          // its width and the row beside it does not shift while one runs.
+          span({ dataset: { part: "label" } }, action.text),
+          ...(turning ? [span({ dataset: { part: "spinner" } })] : []),
+        );
+      }),
     );
     panel.body.replaceChildren(panel.render());
     reveal(panel);

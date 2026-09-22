@@ -141,23 +141,43 @@
 }
 
 /*
-    Pressed, not running: the command is fired from this animation's end event, so it
-    is deliberately short. Reduced motion keeps a token animation rather than none,
-    because animationend is what sets the command going.
+    A running action spins where its label was. The label keeps its space and only
+    turns invisible, so four buttons in a row hold still while one of them works.
 */
-@keyframes press {
-    40% {
-        transform: scale(0.92);
-        opacity: 0.55;
-    }
+[data-part="head"] [data-part="action"] {
+    position: relative;
 }
 
 [data-part="head"] [data-part="action"][data-running] {
-    animation: press 220ms ease-out;
+    color: var(--dim);
+    cursor: default;
+}
+
+[data-part="head"] [data-part="action"][data-running] [data-part="label"] {
+    visibility: hidden;
+}
+
+[data-part="head"] [data-part="action"] [data-part="spinner"] {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+}
+
+[data-part="spinner"]::before {
+    content: "";
+    display: block;
+    width: 1.1em;
+    height: 1.1em;
+    background-color: currentColor;
+    -webkit-mask: var(--sync) center / 100% 100% no-repeat;
+    mask: var(--sync) center / 100% 100% no-repeat;
+    animation: turn 900ms linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    [data-part="head"] [data-part="action"][data-running] {
-        animation: press 1ms linear;
+    [data-part="spinner"]::before {
+        animation: none;
+        opacity: 0.6;
     }
 }

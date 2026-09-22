@@ -281,21 +281,22 @@ textarea[data-part="field"] {
     box-shadow: inset 3px 0 0 var(--accent);
 }
 
-/* The upload nudges upward on its way out, which is the direction it means. */
-@keyframes send {
-    45% {
-        transform: translateY(-3px);
-        opacity: 0.45;
-    }
-}
-
+/*
+    While the push runs, the cloud is replaced by the sync arrows and turned. The
+    swap is the whole tell: a cloud that merely spun would read as decoration, and
+    two arrows chasing each other is what every other tool means by "working".
+*/
 [data-part="push"][data-running] {
-    animation: send 260ms ease-out;
+    -webkit-mask-image: var(--sync);
+    mask-image: var(--sync);
+    animation: turn 900ms linear infinite;
+    cursor: default;
 }
 
 @media (prefers-reduced-motion: reduce) {
     [data-part="push"][data-running] {
-        animation: send 1ms linear;
+        animation: none;
+        opacity: 0.6;
     }
 }
 
