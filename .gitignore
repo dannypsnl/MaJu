@@ -11,3 +11,23 @@ neutralino.js
 # Neutralinojs related files
 .storage
 *.log
+
+# Neutralinojs runtime state
+.tmp
+
+# Node
+node_modules
+
+# Vite build output: it goes into the Neutralinojs documentRoot
+resources/index.html
+resources/assets
+
+# PureScript
+output
+.spago
+.psc-ide-port
+.psci_modules
+.purs-repl
+
+# purescript-spec run cache
+.spec-results

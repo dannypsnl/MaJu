@@ -1,0 +1,18 @@
+package:
+  name: maju
+  dependencies:
+    - arrays
+    - foldable-traversable
+    - maybe
+    - ordered-collections
+    - prelude
+  test:
+    main: Test.Main
+    dependencies:
+      - aff
+      - effect
+      - spec
+      - spec-node
+workspace:
+  packageSet:
+    registry: 81.1.0
