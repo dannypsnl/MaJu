@@ -189,7 +189,7 @@ export async function remotes(root) {
 export const describe = (root, change, message) =>
   run(root, ["describe", "-r", change, "-m", message]);
 
-export const create = (root, change) => run(root, ["new", change]);
+export const create = (root, ...changes) => run(root, ["new", ...changes]);
 
 export const edit = (root, change) => run(root, ["edit", change]);
 

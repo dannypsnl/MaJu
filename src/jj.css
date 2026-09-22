@@ -257,3 +257,9 @@ ul {
 [data-part="workspace"][data-current="true"] [data-part="name"] {
     font-weight: 600;
 }
+
+/* A mark is a second selection, so it reads as an edge rather than a fill —
+   a change can be both the cursor and a merge parent at the same time. */
+[data-part="change"][data-marked] {
+    box-shadow: inset 3px 0 0 var(--accent);
+}

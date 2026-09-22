@@ -2,7 +2,7 @@ import { div, span } from "./tiny.js";
 
 let showing = null;
 
-const SHOWN = { Escape: "esc", Enter: "\u21a9" };
+const SHOWN = { Escape: "esc", Enter: "\u21a9", " ": "space" };
 
 const MARGIN = 6;
 

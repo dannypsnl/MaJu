@@ -9,6 +9,25 @@ let rebasing = null;
 let dragging = null;
 let prompting = null;
 
+/*
+    Marks are a second, plural selection, kept apart from state.selected so that
+    Files and Diff keep following the one change under the cursor while a merge is
+    being assembled. They live only in this panel, and only as long as their change
+    does: jj rewrites change ids all the time, and a mark whose change is gone is
+    forgotten rather than carried around as a stale id.
+*/
+const marked = new Set();
+
+function marks() {
+  for (const id of marked) if (!at(id)) marked.delete(id);
+  return [...marked];
+}
+
+function mark(id) {
+  if (!marked.delete(id)) marked.add(id);
+  draw();
+}
+
 const title = (change) => change.description || "(no description set)";
 
 const cursor = () =>
@@ -132,12 +151,14 @@ function line(change, place, lanes) {
         part: "change",
         change: change.change,
         ...(change.change === state.selected ? { selected: "" } : {}),
+        ...(marked.has(change.change) ? { marked: "" } : {}),
         destination: String(Boolean(rebasing) && rebasing !== change.change),
       },
       draggable: true,
       onclick: (event) => {
         focus("graph");
-        choose(change.change, event);
+        if (event.metaKey || event.ctrlKey) mark(change.change);
+        else choose(change.change, event);
       },
       ondragstart: (event) => {
         dragging = { kind: "change", id: change.change };
@@ -389,6 +410,19 @@ function verbs(change) {
   return [
     { text: "Edit", key: "e", run: () => act(jj.edit(state.root, id)) },
     { text: "New Child", key: "n", run: () => act(jj.create(state.root, id)) },
+    {
+      text: marked.has(id) ? "Unmark" : "Mark",
+      key: " ",
+      run: () => mark(id),
+    },
+    {
+      text: "Clear Marks",
+      when: () => marks().length > 0,
+      run: () => {
+        marked.clear();
+        draw();
+      },
+    },
     { separator: true },
     { text: "Describe…", key: "d", run: () => describing(change) },
     { text: "Set Bookmark…", key: "b", run: () => naming(change) },
