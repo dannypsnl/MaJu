@@ -69,7 +69,10 @@ subscribe(() => {
   if (state.root === remembered) return;
   remembered = state.root;
   const name = state.root?.split("/").filter(Boolean).pop();
-  Neutralino.window.setTitle(name ? `MaJu — ${name}` : "MaJu").catch(() => {});
+  const title = name ? `MaJu — ${name}` : "MaJu";
+  Neutralino.window.setTitle(title).catch(() => {
+    console.error("failed to set title");
+  });
   save("root", state.root ?? "");
   menu();
 });
