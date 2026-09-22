@@ -241,7 +241,34 @@ export const edit = (root, change) => run(root, ["edit", change]);
 
 export const abandon = (root, change) => run(root, ["abandon", change]);
 
-export const squash = (root, change) => run(root, ["squash", "-r", change]);
+/*
+    A squash that empties its source abandons it, and when both the source and the
+    destination carried a description jj asks what the combined one should be — by
+    opening $EDITOR. There is no terminal behind this window, so that is not a
+    question but a crash. The editor would have opened on the destination's
+    description, a blank line, then the source's; handing exactly that to -m is the
+    same answer without the question, and keeps both.
+
+    With a description missing on either side there is nothing to reconcile: jj
+    takes whichever one there is and never asks.
+*/
+async function combined(root, from, into) {
+  const [source, destination] = await Promise.all([
+    description(root, from),
+    description(root, into),
+  ]);
+  return source && destination ? ["-m", `${destination}\n\n${source}`] : [];
+}
+
+// Into the parent, wholesale — so the source is always emptied, and always has a
+// description to reconcile. A merge has no one parent and jj refuses it either way.
+export const squash = async (root, change) =>
+  run(root, [
+    "squash",
+    ...(await combined(root, change, `${change}-`)),
+    "-r",
+    change,
+  ]);
 
 export const rebaseOne = (root, source, destination) =>
   run(root, ["rebase", "-r", source, "--onto", destination]);
@@ -252,13 +279,35 @@ export const rebaseTree = (root, source, destination) =>
 export const absorb = (root, change, path = null) =>
   run(root, path ? ["absorb", "-f", change, path] : ["absorb", "-f", change]);
 
-// One file's worth of a change, moved to a neighbour. jj abandons the source if
-// this empties it, which is the same rule as any other squash.
+/*
+    One file's worth of a change, moved to a neighbour. squash is the only jj verb
+    that moves a file between revisions, but its own rule — abandon a source this
+    empties — is not wanted here: taking the last file out of a change is not a
+    request to delete the change, and the description, bookmarks and place in the
+    graph that would go with it are not this gesture's to throw away. --keep-emptied
+    holds the source open, and with nothing abandoned there are never two
+    descriptions to reconcile, so jj has nothing to ask about either.
+*/
 export const moveFile = (root, from, into, path) =>
-  run(root, ["squash", "--from", from, "--into", into, path]);
+  run(root, [
+    "squash",
+    "--keep-emptied",
+    "--from",
+    from,
+    "--into",
+    into,
+    path,
+  ]);
 
-export const squashInto = (root, from, into) =>
-  run(root, ["squash", "--from", from, "--into", into]);
+export const squashInto = async (root, from, into) =>
+  run(root, [
+    "squash",
+    ...(await combined(root, from, into)),
+    "--from",
+    from,
+    "--into",
+    into,
+  ]);
 
 export const moveBookmark = (root, name, change) =>
   run(root, ["bookmark", "set", "--allow-backwards", "-r", change, name]);
