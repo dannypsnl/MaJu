@@ -445,17 +445,17 @@ export const graph = add({
     },
     {
       text: "Undo",
-      when: () => state.repo && state.remotes.length > 0,
+      when: () => state.repo,
       run: () => act(jj.undo(state.root)),
     },
     {
       text: "Redo",
-      when: () => state.repo && state.remotes.length > 0,
+      when: () => state.repo,
       run: () => act(jj.redo(state.root)),
     },
     {
       text: "Refresh",
-      when: () => state.repo && state.remotes.length > 0,
+      when: () => state.repo,
       run: () => act(refresh()),
     },
   ],
