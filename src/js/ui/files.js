@@ -9,12 +9,21 @@ export const files = add({
   id: "files",
   host: "left",
   flex: "2 1 0",
-  title: () => {
-    const change = at(state.selected);
-    if (!change) return "Files";
-    return change.current ? "Files — working copy" : `Files — ${change.change}`;
-  },
+  title: () => "Working Copy",
   count: () => (state.files.length ? String(state.files.length) : ""),
+
+  actions: () => [
+    {
+      text: "Squash",
+      when: () => state.selected,
+      run: () => act(jj.squash(state.root, state.selected)),
+    },
+    {
+      text: "Absorb",
+      when: () => state.selected,
+      run: () => act(jj.absorb(state.root, state.selected)),
+    },
+  ],
 
   move(by) {
     if (state.files.length === 0) return;
