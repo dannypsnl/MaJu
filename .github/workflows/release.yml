@@ -1,0 +1,60 @@
+# Pushing a tag v<version> builds every platform's archive and publishes them as
+# that tag's GitHub release. Running it by hand builds the same archives and only
+# keeps them as a workflow artifact, which is how to try a build without releasing.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bundle:
+    # scripts/bundle.js produces all platforms from any host, but only a macOS host
+    # can give the .app its ad-hoc signature.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - run: npm ci
+
+      # The release is named after the tag, the archives after neutralino.config.json;
+      # refuse to publish when the two disagree.
+      - name: Check tag matches version
+        if: github.ref_type == 'tag'
+        run: |
+          version=$(node -p 'require("./neutralino.config.json").version')
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match version $version in neutralino.config.json"
+            exit 1
+          fi
+
+      # bin/ and the client library are gitignored: fetch them as `npm start` would.
+      - run: npx neu update
+      - run: npm test
+      - run: npm run app:bundle
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bundle
+          path: |
+            dist/bundle/*.zip
+            dist/bundle/*.tar.gz
+
+      - name: Publish release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            dist/bundle/*.zip dist/bundle/*.tar.gz
