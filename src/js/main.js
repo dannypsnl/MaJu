@@ -70,7 +70,7 @@ let remembered = null;
 subscribe(() => {
   if (state.root === remembered) return;
   remembered = state.root;
-  const name = state.root ? basename(state.root) : null;
+  const name = state.root ? basename(state.root) || state.root : null;
   const title = name ? `MaJu — ${name}` : "MaJu";
   Neutralino.window.setTitle(title).catch(() => {
     console.error("failed to set title");
@@ -86,7 +86,9 @@ async function start() {
       relayout(JSON.parse(sizes));
     } catch {}
   }
-  await open((await saved("root")) ?? NL_CWD);
+  // Only reopen what the user picked last time; a fresh install starts with nothing to open. The empty state can point them at File › Open Repository.
+  const root = await saved("root");
+  if (root) await open(root);
 }
 
 await menu();

@@ -34,7 +34,8 @@ export const status = add({
     if (!state.root) {
       return div({ dataset: { part: "empty" } }, "No repository open");
     }
-    const name = basename(state.root);
+    // basename of a filesystem root ("/") is empty, show the whole path then in this case.
+    const name = basename(state.root) || state.root;
     if (!state.repo) {
       return div(
         { dataset: { part: "empty" } },
