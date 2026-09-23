@@ -1,8 +1,14 @@
 import { spawnSync } from "node:child_process";
-import { chmodSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { createWriteStream, cpSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join, relative, sep } from "node:path";
+import { pipeline } from "node:stream/promises";
+import { createGzip } from "node:zlib";
 
 import png2icons from "png2icons";
+import tar from "tar-stream";
+import yazl from "yazl";
+
+import { runSync } from "./bin.js";
 
 /*
     `neu build` leaves every platform's binary loose in dist/<name>/, next to one
@@ -15,8 +21,9 @@ import png2icons from "png2icons";
 
     Cross-compiling is not involved: the Neutralinojs binaries for all platforms are
     downloaded by `neu update` and only ever copied here, so a run on any one host
-    produces all three. The host does need `zip` and `tar`, which rules out running
-    this on Windows without a POSIX toolchain.
+    produces all three. The archives are written in JavaScript rather than by `zip`
+    and `tar`, for the same reason: Windows has neither, and its filesystem has no
+    executable bit for them to preserve anyway.
 */
 
 const ROOT = join(import.meta.dirname, "..");
@@ -44,21 +51,61 @@ function run(command, args, options = {}) {
   if (status !== 0) throw new Error(`${command} ${args.join(" ")} exited with ${status}`);
 }
 
-// zip and tar both name entries relative to the working directory, so they run
-// from the staging directory's parent and are handed the bare folder name.
-function archive(kind, folder, stem = folder) {
+/*
+    Permissions are not read back off the disk: on Windows chmod does nothing, so
+    the staged binary looks no more executable than the icon beside it. stage()
+    records what it made executable instead, and the archives are told directly.
+*/
+const EXECUTABLES = new Set();
+
+// Entries are named relative to OUT, so each archive unpacks into one folder.
+function* walk(dir) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    const name = relative(OUT, path).split(sep).join("/");
+    if (entry.isDirectory()) {
+      yield { path, name: `${name}/`, directory: true, mode: 0o755 };
+      yield* walk(path);
+    } else {
+      yield { path, name, directory: false, mode: EXECUTABLES.has(path) ? 0o755 : 0o644 };
+    }
+  }
+}
+
+// A zip entry's mode carries the file type too; without it unzip sees neither a
+// file nor a directory.
+const S_IFREG = 0o100000;
+const S_IFDIR = 0o040000;
+
+function zip(folder, destination) {
+  const archive = new yazl.ZipFile();
+  archive.addEmptyDirectory(`${folder}/`, { mode: S_IFDIR | 0o755 });
+  for (const { path, name, directory, mode } of walk(join(OUT, folder))) {
+    if (directory) archive.addEmptyDirectory(name, { mode: S_IFDIR | mode });
+    else archive.addBuffer(readFileSync(path), name, { mode: S_IFREG | mode });
+  }
+  archive.end();
+  return pipeline(archive.outputStream, createWriteStream(destination));
+}
+
+function tarball(folder, destination) {
+  const archive = tar.pack();
+  archive.entry({ name: `${folder}/`, type: "directory", mode: 0o755 });
+  for (const { path, name, directory, mode } of walk(join(OUT, folder))) {
+    if (directory) archive.entry({ name, type: "directory", mode });
+    else archive.entry({ name, mode }, readFileSync(path));
+  }
+  archive.finalize();
+  return pipeline(archive, createGzip(), createWriteStream(destination));
+}
+
+async function archive(kind, folder, stem = folder) {
   const name = kind === "zip" ? `${stem}.zip` : `${stem}.tar.gz`;
-  const path = join(OUT, name);
-  rmSync(path, { force: true }); // zip appends to an existing archive
-  // -y keeps symlinks as symlinks, and both tools preserve the executable bit,
-  // which is the whole reason this is not a JavaScript zip library.
-  if (kind === "zip") run("zip", ["-ryq", name, folder], { cwd: OUT });
-  else run("tar", ["-czf", name, folder], { cwd: OUT });
+  await (kind === "zip" ? zip : tarball)(folder, join(OUT, name));
   // The staged tree has served its purpose, except for the .app: that one is the
   // macOS artifact itself, and keeping it saves unzipping to run a local build.
   if (!folder.endsWith(".app")) rmSync(join(OUT, folder), { recursive: true, force: true });
   console.log(`  ${name}`);
-  return path;
 }
 
 // The binary and resources.neu land side by side in every layout: that is how the
@@ -67,7 +114,7 @@ function stage(dir, binary, executable) {
   mkdirSync(dir, { recursive: true });
   const target = join(dir, executable);
   cpSync(join(BUILT, binary), target);
-  chmodSync(target, 0o755);
+  EXECUTABLES.add(target);
   cpSync(join(BUILT, RESOURCES), join(dir, RESOURCES));
 }
 
@@ -116,7 +163,7 @@ Categories=Development;RevisionControl;
 Terminal=false
 `;
 
-function macos() {
+async function macos() {
   const app = join(OUT, `${NAME}.app`);
   rmSync(app, { recursive: true, force: true });
   // The universal binary covers both Intel and Apple Silicon, so the per-arch mac
@@ -145,10 +192,10 @@ function macos() {
 
   // The archive is named like the others; what unpacks out of it is `MaJu.app`,
   // because that name is the one macOS shows in Finder and the Dock.
-  archive("zip", `${NAME}.app`, `${NAME}-${VERSION}-macos-universal`);
+  await archive("zip", `${NAME}.app`, `${NAME}-${VERSION}-macos-universal`);
 }
 
-function linux() {
+async function linux() {
   for (const arch of ["x64", "arm64", "armhf"]) {
     const folder = `${NAME}-${VERSION}-linux-${arch}`;
     const dir = join(OUT, folder);
@@ -156,27 +203,27 @@ function linux() {
     stage(dir, `${NAME}-linux_${arch}`, NAME);
     cpSync(ICON, join(dir, `${NAME}.png`));
     writeFileSync(join(dir, `${NAME}.desktop`), desktop());
-    archive("tar", folder);
+    await archive("tar", folder);
   }
 }
 
-function windows() {
+async function windows() {
   const folder = `${NAME}-${VERSION}-windows-x64`;
   const dir = join(OUT, folder);
   rmSync(dir, { recursive: true, force: true });
   // `neu build` has already stamped the icon and version info into the .exe itself.
   stage(dir, `${NAME}-win_x64.exe`, `${NAME}.exe`);
-  archive("zip", folder);
+  await archive("zip", folder);
 }
 
 // `neu build` without --release: the zip it would make there holds every platform
 // at once, which is the opposite of what this script is for.
-run(join(ROOT, "node_modules", ".bin", "neu"), ["build"]);
+runSync("@neutralinojs/neu", "neu", ["build"], { cwd: ROOT });
 
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 
 console.log(`\nBundling ${NAME} ${VERSION} into ${OUT}`);
-macos();
-linux();
-windows();
+await macos();
+await linux();
+await windows();

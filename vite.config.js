@@ -1,5 +1,4 @@
-import { resolve } from "node:path";
-
+import { resolve } from "pathe";
 import { defineConfig } from "vite";
 
 import neutralino from "./scripts/vite-plugin-neutralino.js";
@@ -14,6 +13,7 @@ export default defineConfig({
   root: "src",
   resolve: {
     // spago writes to output/, which is outside `root`. Imports name it "purs/".
+    // pathe, not node:path, so the replacement stays in forward slashes on Windows.
     alias: { "purs/": `${resolve(import.meta.dirname, "output")}/` },
   },
   publicDir: "../resources",

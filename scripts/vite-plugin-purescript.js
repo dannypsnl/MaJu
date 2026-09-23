@@ -1,6 +1,7 @@
-import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+
+import { run } from "./bin.js";
 
 /*
     spago builds the whole workspace at once and writes to output/ at the
@@ -30,8 +31,7 @@ export default function purescript({ sources = "src/purs" } = {}) {
     pending = pending.then(
       () =>
         new Promise((done) => {
-          // `spago` from PATH: npm puts the workspace's node_modules/.bin there.
-          const spago = spawn("spago", ["build"], { cwd: root, stdio: "inherit" });
+          const spago = run("spago", "spago", ["build"], { cwd: root });
           spago.on("close", done);
           spago.on("error", done);
         }),
