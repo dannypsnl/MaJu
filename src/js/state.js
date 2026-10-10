@@ -48,10 +48,29 @@ export const absolute = (path) => resolve(state.root ?? "", path);
 let ticket = 0;
 let asking = 0;
 
+const EMPTY = () => ({
+  changes: [],
+  graph: { width: 0, places: [] },
+  files: [],
+  diff: "",
+  workspaces: [],
+  refs: {},
+  remotes: [],
+});
+
+async function isDirectory(path) {
+  try {
+    return (await Neutralino.filesystem.getStats(path)).isDirectory;
+  } catch {
+    return false;
+  }
+}
+
 export async function open(root) {
   state.root = root;
   state.selected = null;
   state.file = null;
+  state.error = null;
   await refresh();
 }
 
@@ -59,19 +78,23 @@ export async function refresh() {
   if (!state.root) return;
   const mine = ++ticket;
   const where = state.root;
+  // A folder deleted or moved away while open (or since last launch) would leave every jj call failing on cd; let it go so the user can open another one.
+  if (!(await isDirectory(where))) {
+    if (mine !== ticket) return;
+    Object.assign(state, EMPTY(), {
+      root: null,
+      repo: false,
+      selected: null,
+      file: null,
+      error: `${where} no longer exists`,
+    });
+    changed();
+    return;
+  }
   state.repo = await jj.isRepo(where);
   if (mine !== ticket) return;
   if (!state.repo) {
-    Object.assign(state, {
-      changes: [],
-      graph: { width: 0, places: [] },
-      files: [],
-      diff: "",
-      workspaces: [],
-      refs: {},
-      remotes: [],
-      error: null,
-    });
+    Object.assign(state, EMPTY(), { error: null });
     changed();
     return;
   }

@@ -32,7 +32,9 @@ export const status = add({
 
   render() {
     if (!state.root) {
-      return div({ dataset: { part: "empty" } }, "No repository open");
+      const empty = div({ dataset: { part: "empty" } }, "No repository open");
+      if (!state.error) return empty;
+      return div({}, empty, div({ dataset: { part: "error" } }, state.error));
     }
     // basename of a filesystem root ("/") is empty, show the whole path then in this case.
     const name = basename(state.root) || state.root;
